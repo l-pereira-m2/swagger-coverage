@@ -25,29 +25,21 @@ public class TagStatisticsBuilder extends StatisticsOperationPostBuilder {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TagStatisticsBuilder.class);
 
-    private Map<OperationKey, List<String>> operationToTag;
-
     private Map<String, TagCoverage> tagCoverageMap;
     private CoverageCounter tagCounter = new CoverageCounter();
 
     @Override
-    public TagStatisticsBuilder configure(OpenAPI swagger, List<ConditionRule> rules) {
-        OperationsHolder operations = SwaggerSpecificationProcessor.extractOperation(swagger);
-
+    public TagStatisticsBuilder configure(List<ConditionRule> rules) {
         tagCoverageMap = ofNullable(swagger.getTags())
                 .orElse(emptyList())
                 .stream()
+                .filter(tag -> includeTags == null || includeTags.contains(tag.getName()))
                 .collect(toMap(Tag::getName, TagCoverage::new));
 
-        operationToTag = operations.getOperations()
-                .entrySet()
-                .stream()
-                .filter(entry -> entry.getValue().getTags() != null)
-                .collect(toMap(Map.Entry::getKey, entry -> entry.getValue().getTags()));
 
         operationToTag.forEach((key, value) -> value.stream()
                 .filter(tag -> tagCoverageMap.containsKey(tag))
-                .forEach(tag -> tagCoverageMap.get(tag).addOperation(key)));
+                .forEach(tag -> tagCoverageMap.get(tag).addOperation(OperationKey.fromString(key))));
 
         return this;
     }

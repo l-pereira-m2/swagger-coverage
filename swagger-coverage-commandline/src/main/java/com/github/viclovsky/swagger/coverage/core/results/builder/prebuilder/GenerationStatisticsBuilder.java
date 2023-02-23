@@ -29,7 +29,7 @@ public class GenerationStatisticsBuilder extends StatisticsPreBuilder {
     private long startTime;
 
     @Override
-    public GenerationStatisticsBuilder configure(OpenAPI swagger, List<ConditionRule> rules) {
+    public GenerationStatisticsBuilder configure(List<ConditionRule> rules) {
         startTime = System.currentTimeMillis();
         return this;
     }

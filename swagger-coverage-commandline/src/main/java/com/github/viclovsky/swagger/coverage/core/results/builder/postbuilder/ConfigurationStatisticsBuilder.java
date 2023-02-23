@@ -18,7 +18,7 @@ public class ConfigurationStatisticsBuilder extends StatisticsPostBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationStatisticsBuilder.class);
 
     @Override
-    public StatisticsBuilder configure(OpenAPI swagger, List<ConditionRule> rules) {
+    public StatisticsBuilder configure(List<ConditionRule> rules) {
         return this;
     }
 

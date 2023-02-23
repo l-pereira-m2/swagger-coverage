@@ -1,5 +1,6 @@
 package com.github.viclovsky.swagger.coverage.core.model;
 
+import io.swagger.parser.SwaggerException;
 import io.swagger.v3.oas.models.PathItem;
 
 public class OperationKey implements Comparable {
@@ -19,6 +20,11 @@ public class OperationKey implements Comparable {
     public OperationKey setPath(String path) {
         this.path = path;
         return this;
+    }
+
+    public static OperationKey fromString(String pathAndMethod) {
+        String[] segments = pathAndMethod.split(" ");
+        return new OperationKey().setPath(segments[0]).setHttpMethod(PathItem.HttpMethod.valueOf(segments[1]));
     }
 
     public PathItem.HttpMethod getHttpMethod() {

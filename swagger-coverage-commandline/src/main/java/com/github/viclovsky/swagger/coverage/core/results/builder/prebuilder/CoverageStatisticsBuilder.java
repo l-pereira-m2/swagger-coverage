@@ -18,11 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.AntPathMatcher;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.function.Predicate;
 
 public class CoverageStatisticsBuilder extends StatisticsPreBuilder {
@@ -33,14 +29,14 @@ public class CoverageStatisticsBuilder extends StatisticsPreBuilder {
     private Map<OperationKey, Operation> deprecated = new TreeMap<>();
 
     @Override
-    public CoverageStatisticsBuilder configure(OpenAPI swagger, List<ConditionRule> rules) {
-        mainCoverageData = OperationConditionGenerator.getOperationMap(swagger, rules);
+    public CoverageStatisticsBuilder configure(List<ConditionRule> rules) {
+        mainCoverageData = OperationConditionGenerator.getOperationMap(swagger, rules, includeTags);
         return this;
     }
 
     @Override
     public CoverageStatisticsBuilder add(OpenAPI swagger) {
-        OperationsHolder operations = SwaggerSpecificationProcessor.extractOperation(swagger);
+        OperationsHolder operations = SwaggerSpecificationProcessor.extractOperation(swagger, null);
 
         operations.getOperations().forEach((key, value) -> {
             LOGGER.info(String.format("==  process result [%s]", key));
@@ -49,12 +45,15 @@ public class CoverageStatisticsBuilder extends StatisticsPreBuilder {
                     .filter(equalsOperationKeys(key)).findFirst();
 
             if (keyOptional.isPresent()) {
-                mainCoverageData.get(keyOptional.get())
-                        .increaseProcessCount()
-                        .getConditions()
-                        .stream()
-                        .filter(Condition::isNeedCheck)
-                        .forEach(condition -> condition.check(value));
+                Operation op = mainCoverageData.get(keyOptional.get()).getOperation();
+                if (op != null) {
+                    mainCoverageData.get(keyOptional.get())
+                            .increaseProcessCount()
+                            .getConditions()
+                            .stream()
+                            .filter(Condition::isNeedCheck)
+                            .forEach(condition -> condition.check(value));
+                }
             } else {
                 LOGGER.info(String.format("Missed request [%s]", key));
                 missed.put(key, value);
@@ -74,25 +73,27 @@ public class CoverageStatisticsBuilder extends StatisticsPreBuilder {
         Map<String, ConditionStatistics> conditionStatisticsMap = new HashMap<>();
 
         mainCoverageData.forEach((key, value) -> {
-            value.getConditions().stream().filter(Condition::isHasPostCheck).forEach(Condition::postCheck);
+            if (value.getConditions() != null) {
+                value.getConditions().stream().filter(Condition::isHasPostCheck).forEach(Condition::postCheck);
 
-            operations.put(key, new OperationResult(configuration, value.getConditions(), value.getOperation().getDeprecated())
-                    .setProcessCount(value.getProcessCount())
-                    .setDescription(value.getOperation().getDescription())
-                    .setOperationKey(key)
-            );
+                operations.put(key, new OperationResult(configuration, value.getConditions(), value.getOperation().getDeprecated())
+                        .setProcessCount(value.getProcessCount())
+                        .setDescription(value.getOperation().getDescription())
+                        .setOperationKey(key)
+                );
 
-            if (value.getOperation().getDeprecated() != null && value.getOperation().getDeprecated()) {
-                deprecated.put(key, value.getOperation());
-            }
+                if (value.getOperation().getDeprecated() != null && value.getOperation().getDeprecated()) {
+                    deprecated.put(key, value.getOperation());
+                }
 
-            value.getConditions().forEach(condition -> {
-                        if (!conditionStatisticsMap.containsKey(condition.getType())) {
-                            conditionStatisticsMap.put(condition.getType(), new ConditionStatistics());
+                value.getConditions().forEach(condition -> {
+                            if (!conditionStatisticsMap.containsKey(condition.getType())) {
+                                conditionStatisticsMap.put(condition.getType(), new ConditionStatistics());
+                            }
+                            conditionStatisticsMap.get(condition.getType()).processCondition(key, condition);
                         }
-                        conditionStatisticsMap.get(condition.getType()).processCondition(key, condition);
-                    }
-            );
+                );
+            }
         });
 
         results.setOperations(operations)

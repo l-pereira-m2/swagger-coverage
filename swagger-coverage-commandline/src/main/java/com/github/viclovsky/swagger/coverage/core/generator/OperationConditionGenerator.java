@@ -20,13 +20,17 @@ public class OperationConditionGenerator {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OperationConditionGenerator.class);
 
-    public static Map<OperationKey, ConditionOperationCoverage> getOperationMap(OpenAPI swagger, List<ConditionRule> rules) {
-        OperationsHolder operations = SwaggerSpecificationProcessor.extractOperation(swagger);
+    public static Map<OperationKey, ConditionOperationCoverage> getOperationMap(OpenAPI swagger, List<ConditionRule> rules, List<String> includeTags) {
+        OperationsHolder operations = SwaggerSpecificationProcessor.extractOperation(swagger, null);
         Map<OperationKey, ConditionOperationCoverage> coverage = new TreeMap<>();
 
         operations.getOperations().forEach((key, value) -> {
             ConditionOperationCoverage oc = buildConditionOperationCoverage(value, rules);
             LOGGER.debug(String.format("put operation %s", key));
+            if (!SwaggerSpecificationProcessor.includeOperation(value.getTags(), includeTags)){
+                oc.setConditions(null);
+                oc.setOperation(null);
+            }
             coverage.put(key, oc);
         });
 

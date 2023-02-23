@@ -40,8 +40,8 @@ public class Configuration {
         if (configuredBuilders == null) {
             configuredBuilders = registeredBuilders
                     .stream().map(builder -> builder
-                            .configure(options)
-                            .configure(specification, getRulesList())
+                            .configure(options, specification)
+                            .configure(getRulesList())
                     )
                     .collect(Collectors.toList());
         }

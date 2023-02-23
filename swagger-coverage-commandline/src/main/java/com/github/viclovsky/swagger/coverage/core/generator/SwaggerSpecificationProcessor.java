@@ -7,6 +7,7 @@ import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.parameters.Parameter;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -15,12 +16,16 @@ public class SwaggerSpecificationProcessor {
 
     private static final String X_EXAMPLE = "x-example";
 
-    public static OperationsHolder extractOperation(OpenAPI swagger) {
+    public static OperationsHolder extractOperation(OpenAPI swagger, List<String> includeTags) {
         OperationsHolder operations = new OperationsHolder();
 
         swagger.getPaths().keySet().forEach(path
                 -> swagger.getPaths().get(path).readOperationsMap().forEach((httpMethod, operation)
-                -> operations.addOperation(new OperationKey().setPath(path).setHttpMethod(httpMethod), operation)
+                -> {
+                    if (includeOperation(operation.getTags(), includeTags)) {
+                        operations.addOperation(new OperationKey().setPath(path).setHttpMethod(httpMethod), operation);
+                    }
+                }
         ));
         return operations;
     }
@@ -67,6 +72,14 @@ public class SwaggerSpecificationProcessor {
         } else {
             return null;
         }
+    }
+
+    public static boolean includeOperation(List<String> operationTags, List<String> tagsToInclude){
+        if (tagsToInclude == null || tagsToInclude.isEmpty() ||
+                (operationTags != null && !Collections.disjoint(operationTags, tagsToInclude))) {
+            return true;
+        }
+        return false;
     }
 
 }

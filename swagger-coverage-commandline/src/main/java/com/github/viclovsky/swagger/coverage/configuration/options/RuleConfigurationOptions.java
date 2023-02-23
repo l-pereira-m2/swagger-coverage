@@ -5,6 +5,7 @@ import java.util.List;
 public class RuleConfigurationOptions {
     private boolean enable = true;
     private List<String> filter;
+    private List<String> tags;
     private List<String> ignore;
 
     public boolean isEnable() {
@@ -22,6 +23,15 @@ public class RuleConfigurationOptions {
 
     public RuleConfigurationOptions setFilter(List<String> filter) {
         this.filter = filter;
+        return this;
+    }
+
+    public List<String> getTags() {
+        return tags;
+    }
+
+    public RuleConfigurationOptions setTags(List<String> tags) {
+        this.tags = tags;
         return this;
     }
 

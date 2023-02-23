@@ -15,7 +15,7 @@ public class SwaggerInfoBuilder extends StatisticsOperationPostBuilder {
     private Info info;
 
     @Override
-    public SwaggerInfoBuilder configure(OpenAPI swagger, List<ConditionRule> rules) {
+    public SwaggerInfoBuilder configure(List<ConditionRule> rules) {
         info = swagger.getInfo();
         return this;
     }
