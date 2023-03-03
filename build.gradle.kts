@@ -106,8 +106,6 @@ configure(subprojects) {
             ))
         }
     }
-
-    apply(from = "$gradleScriptDir/maven-publish.gradle")
 }
 
 repositories {
