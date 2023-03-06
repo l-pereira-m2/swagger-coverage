@@ -71,22 +71,11 @@ configure(subprojects) {
         archiveClassifier.set("sources")
     }
 
-    val javadocJar by tasks.creating(Jar::class) {
-        from(tasks.getByName("javadoc"))
-        archiveClassifier.set("javadoc")
-    }
-
-    tasks.withType(Javadoc::class) {
-        (options as StandardJavadocDocletOptions).addStringOption("Xdoclint:none", "-quiet")
-    }
-
     tasks.withType<GenerateModuleMetadata> {
         enabled = false
     }
 
     artifacts.add("archives", sourceJar)
-    artifacts.add("archives", javadocJar)
-
 
     tasks.compileJava {
         options.encoding = "UTF-8"
